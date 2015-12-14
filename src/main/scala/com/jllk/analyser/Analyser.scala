@@ -57,6 +57,7 @@ class Analyser(private val mode: Int, private val path: File, private val depend
   import Analyser._
 
   def analysis(fullClassName: String): mutable.Set[String] = {
+    print(s"[analysis] className: $fullClassName")
     val dependentClasses = mutable.Set[String]()
     val importDependence = analysisImportDependence(fullClassName)
     importDependence.foreach(e => {
@@ -67,6 +68,7 @@ class Analyser(private val mode: Int, private val path: File, private val depend
   }
 
   private def analysisImportDependence(fullClassName: String): List[String] = {
+    print(s"analysisImportDependence className: $fullClassName")
     val dependentClasses = ListBuffer[String]()
     val classReport = mode match {
       case MODE_CLASS_PATH => ProcessUtils.exec(s"javap -verbose $path ${fullClassName.replace('.', '/')}")
@@ -80,6 +82,7 @@ class Analyser(private val mode: Int, private val path: File, private val depend
   }
 
   private def analysisInheritDependence(fullClassName: String): List[String] = {
+    print(s"[analysisInheritDependence] className: $fullClassName")
     val urls = ListBuffer[URL]()
     urls += path.toURI.toURL
     dependenceJarPath.foreach(f => urls += f.toURI.toURL)
@@ -88,6 +91,7 @@ class Analyser(private val mode: Int, private val path: File, private val depend
   }
 
   private def doClassInheritSearch(fullClassName: String, classLoader: URLClassLoader): List[String] = {
+    print(s"[doClassInheritSearch] className: $fullClassName")
     val dependentClasses = ListBuffer[String]()
     dependentClasses += fullClassName
     val targetClass = classLoader.loadClass(fullClassName)

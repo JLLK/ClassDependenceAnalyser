@@ -36,23 +36,26 @@
  *                              HERE BE DRAGONS
  *
  */
-package com.jllk.analyser
+package com.jllk
+
+import java.io.{IOException, Closeable}
 
 /**
   * @author chentaov5@gmail.com
   *
   */
-object ProcessUtils {
-  def exec(cmd: String): String = {
-    val child = Runtime.getRuntime.exec(cmd)
-    val input = child.getInputStream
-    inSafe(input) {
-      val bytes = new Array[Byte](input.available())
-      val retCode = child.waitFor()
-      print(s"[ProcessUtils] exec: $cmd, retCode: $retCode")
-      val retStr = new String(bytes)
-      print(s"[ProcessUtils] exec: $cmd, retStr: $retStr")
-      retStr
+package object analyser {
+  def inSafe[A](input: Closeable)(fun: () => A): A = {
+    if (input != null) {
+      try {
+        fun
+      } finally {
+        try {
+          input.close()
+        } catch {
+          case e: IOException => print(s"IOException happened! ${e.getMessage}")
+        }
+      }
     }
   }
 }
