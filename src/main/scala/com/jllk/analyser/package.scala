@@ -45,16 +45,16 @@ import java.io.{IOException, Closeable}
   *
   */
 package object analyser {
-  def inSafe[A](input: Closeable)(fun: () => A): A = {
-    if (input != null) {
+
+  def inSafe[A](input: Closeable)(fun: => A): A = {
+    require(input != null)
+    try {
+      fun
+    } finally {
       try {
-        fun
-      } finally {
-        try {
-          input.close()
-        } catch {
-          case e: IOException => print(s"IOException happened! ${e.getMessage}")
-        }
+        input.close()
+      } catch {
+        case e: IOException => println(s"IOException happened! ${e.getMessage}")
       }
     }
   }

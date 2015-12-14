@@ -38,10 +38,26 @@
  */
 package com.jllk.analyser
 
+import java.io.File
+
 /**
   * @author chentaov5@gmail.com
   *
   */
 object Entry extends App {
-  print("hello tomchen!\n")
+  println("hello tomchen, analysis begin!")
+
+  val fullClassName = "android.app.Application"
+  val jarPath = new File("your jar path here.")
+  val dependenceJarPath = List[File]()
+  val analyser1 = new Analyser(Analyser.MODE_JAR, jarPath, dependenceJarPath)
+  val result = analyser1.analysis(fullClassName)
+  result
+  .filterNot(r => isSysClass(r))
+  .foreach(r => println(s"result: $r"))
+
+  def isSysClass(fullClassName: String): Boolean =
+    fullClassName.startsWith("java.lang") ||
+    fullClassName.startsWith("android.app")
+
 }

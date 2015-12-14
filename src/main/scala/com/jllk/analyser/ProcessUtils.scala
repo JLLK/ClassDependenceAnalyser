@@ -45,13 +45,16 @@ package com.jllk.analyser
 object ProcessUtils {
   def exec(cmd: String): String = {
     val child = Runtime.getRuntime.exec(cmd)
+    val retCode = child.waitFor()
+    println(s"[ProcessUtils] exec: $cmd, retCode: $retCode")
+
     val input = child.getInputStream
     inSafe(input) {
       val bytes = new Array[Byte](input.available())
-      val retCode = child.waitFor()
-      print(s"[ProcessUtils] exec: $cmd, retCode: $retCode")
+      input.read(bytes)
+      println(s"[ProcessUtils] exec: read bytes len: ${bytes.length}")
       val retStr = new String(bytes)
-      print(s"[ProcessUtils] exec: $cmd, retStr: $retStr")
+      println(s"[ProcessUtils] exec: $cmd, retStr: $retStr")
       retStr
     }
   }

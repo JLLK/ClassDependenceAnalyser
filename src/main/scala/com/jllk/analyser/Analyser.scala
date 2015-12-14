@@ -49,40 +49,43 @@ import scala.collection.mutable.ListBuffer
   *
   */
 object Analyser {
-  val MODE_CLASS_PATH = 0x00
-  val MODE_JAR_PATH   = 0x01
+  val MODE_CLASS = 0x00
+  val MODE_JAR   = 0x01
 }
 
 class Analyser(private val mode: Int, private val path: File, private val dependenceJarPath: List[File]) {
   import Analyser._
 
   def analysis(fullClassName: String): mutable.Set[String] = {
-    print(s"[analysis] className: $fullClassName")
+    println(s"[analysis] className: $fullClassName")
     val dependentClasses = mutable.Set[String]()
     val importDependence = analysisImportDependence(fullClassName)
-    importDependence.foreach(e => {
-      dependentClasses += e
-      dependentClasses ++ analysisInheritDependence(e)
+    println(s"[analysis] after analysisImportDependence len: ${importDependence.size}")
+    importDependence.foreach(c => {
+      dependentClasses += c
+      dependentClasses ++= analysisInheritDependence(c)
     })
+    println(s"[analysis] after analysisInheritDependence len: ${dependentClasses.size}")
     dependentClasses
   }
 
   private def analysisImportDependence(fullClassName: String): List[String] = {
-    print(s"analysisImportDependence className: $fullClassName")
-    val dependentClasses = ListBuffer[String]()
+    println(s"[analysisImportDependence] className: $fullClassName")
+    val dependentClasses = new ListBuffer[String]()
     val classReport = mode match {
-      case MODE_CLASS_PATH => ProcessUtils.exec(s"javap -verbose $path ${fullClassName.replace('.', '/')}")
-      case MODE_JAR_PATH   => ProcessUtils.exec(s"javap -verbose -classpath $path ${fullClassName.replace('.', '/')}")
+      case MODE_CLASS => ProcessUtils.exec(s"javap -verbose $path ${fullClassName.replace('.', '/')}")
+      case MODE_JAR   => ProcessUtils.exec(s"javap -verbose -classpath $path ${fullClassName.replace('.', '/')}")
     }
     val lines = classReport.split('\n')
+    println(s"[analysisImportDependence] lines len: ${lines.length}")
     lines
-    .withFilter(l => l.contains("= Class") && l.contains("\"[Ljava/lang/Object;\""))
+    .filter(l => l.contains("= Class") && !l.contains("\"[Ljava/lang/Object;\""))
     .foreach(l => dependentClasses += l.substring(l.indexOf("//") + 2).replaceAll(" ", "").replaceAll("/", "\\.").trim())
     dependentClasses.toList
   }
 
   private def analysisInheritDependence(fullClassName: String): List[String] = {
-    print(s"[analysisInheritDependence] className: $fullClassName")
+    println(s"[analysisInheritDependence] className: $fullClassName")
     val urls = ListBuffer[URL]()
     urls += path.toURI.toURL
     dependenceJarPath.foreach(f => urls += f.toURI.toURL)
@@ -91,15 +94,15 @@ class Analyser(private val mode: Int, private val path: File, private val depend
   }
 
   private def doClassInheritSearch(fullClassName: String, classLoader: URLClassLoader): List[String] = {
-    print(s"[doClassInheritSearch] className: $fullClassName")
+    println(s"[doClassInheritSearch] className: $fullClassName")
     val dependentClasses = ListBuffer[String]()
     dependentClasses += fullClassName
     val targetClass = classLoader.loadClass(fullClassName)
     val superclass = targetClass.getSuperclass
     if (superclass != null) {
-      dependentClasses ++ doClassInheritSearch(superclass.getName, classLoader)
+      dependentClasses ++= doClassInheritSearch(superclass.getName, classLoader)
     }
-    targetClass.getInterfaces.foreach(i => dependentClasses ++ doClassInheritSearch(i.getName, classLoader))
+    targetClass.getInterfaces.foreach(i => dependentClasses ++= doClassInheritSearch(i.getName, classLoader))
     dependentClasses.toList
   }
 }
