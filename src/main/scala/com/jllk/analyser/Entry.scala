@@ -45,19 +45,75 @@ import java.io.File
   *
   */
 object Entry extends App {
-  println("hello tomchen, analysis begin!")
 
-  val fullClassName = "android.app.Application"
-  val jarPath = new File("your jar path here.")
-  val dependenceJarPath = List[File]()
-  val analyser1 = new Analyser(Analyser.MODE_JAR, jarPath, dependenceJarPath)
-  val result = analyser1.analysis(fullClassName)
-  result
-  .filterNot(r => isSysClass(r))
-  .foreach(r => println(s"result: $r"))
+  printArgs(args)
+  handleArgs(args)
 
-  def isSysClass(fullClassName: String): Boolean =
-    fullClassName.startsWith("java.lang") ||
-    fullClassName.startsWith("android.app")
+  def handleArgs(args: Array[String]) = {
+    if (args == null || args.length <= 0) {
+      handleError(args)
+    } else {
+      args(0) match {
+        case "--class"    | "-c" => execClassAnalysis(args)
+        case "--help"     | "-h" => showHelpInfo()
+        case "--version"  | "-v" => showVersionInfo()
+        case _                   => handleError(args)
+      }
+    }
+  }
 
+  def printArgs(args: Array[String]) = {
+    println(s"args len: ${args.length}")
+    if (args.length > 0) {
+      var i = 0
+      args.foreach(arg => {
+        println(s"args($i): $arg")
+        i = i + 1
+      })
+    }
+  }
+
+  def execClassAnalysis(args: Array[String]) = {
+    if (args.length < 2) {
+      handleError(args)
+    } else {
+      val argsList = args.toList
+      val argsLen = args.length
+      val fullClassName = argsList(argsLen - 1)
+      val targetClassPath = new File(argsList(1))
+      val dependenceJarPath = remove(remove(remove(argsList, argsLen -1), 0), 0)
+        .map(arg => new File(arg))
+      val analyser = new Analyser(targetClassPath, dependenceJarPath)
+      val result = analyser.analysis(fullClassName)
+      result
+        .filterNot(r => isSysClass(r))
+        .foreach(r => println(s"result: $r"))
+    }
+  }
+
+  def handleError(args: Array[String]) = {
+    args match {
+      case null => showHelpInfo()
+      case _    => println("error in args, please check again,  -help for more info.")
+    }
+  }
+
+  def showHelpInfo() = {
+    println("Usage: jda [arguments] path fullClassName")
+    println("find and print the input class dependence.")
+    println("Example: jda -c /workspace/build/android.jar android.app.Application")
+    println("")
+    println("The arguments are:")
+    println("")
+    println("   -c, --class    analysis class dependence from single class file or from jar path")
+    println("   -h, --help     print jda help info")
+    println("   -v, --version  print jda version")
+    println("")
+  }
+
+  def showVersionInfo() = {
+    println("===========================================================")
+    println("  ClassDependenceAnalyser 0.5beta <chentaov5@gmail.com>")
+    println("===========================================================")
+  }
 }

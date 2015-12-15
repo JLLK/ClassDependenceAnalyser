@@ -58,4 +58,18 @@ package object analyser {
       }
     }
   }
+
+  def isEmpty(str: String): Boolean = str match {
+    case null | "" => true
+    case _ => false
+  }
+
+  def remove[A](list: List[A], index: Int) = {
+    val (start, _ :: end) = list.splitAt(index)
+    start ::: end
+  }
+
+  def isSysClass(fullClassName: String): Boolean =
+    fullClassName.startsWith("java") ||
+    fullClassName.startsWith("android")
 }
