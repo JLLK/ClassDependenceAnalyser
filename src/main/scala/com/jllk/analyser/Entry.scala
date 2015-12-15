@@ -86,7 +86,7 @@ object Entry extends App {
       val analyser = new Analyser(targetClassPath, dependenceJarPath)
       val result = analyser.analysis(fullClassName)
       result
-        .filterNot(r => isSysClass(r))
+        .filterNot(r => notCareClass(r))
         .foreach(r => println(s"result: $r"))
     }
   }
@@ -99,7 +99,7 @@ object Entry extends App {
   }
 
   def showHelpInfo() = {
-    println("Usage: jda [arguments] path fullClassName")
+    println("Usage: jda [arguments] targetClassPath [dependenceJarPath]... fullClassName")
     println("find and print the input class dependence.")
     println("Example: jda -c /workspace/build/android.jar android.app.Application")
     println("")

@@ -69,7 +69,7 @@ package object analyser {
     start ::: end
   }
 
-  def isSysClass(fullClassName: String): Boolean =
+  def notCareClass(fullClassName: String): Boolean =
     fullClassName.startsWith("java") ||
-    fullClassName.startsWith("android")
+   (fullClassName.startsWith("android") && !fullClassName.startsWith("android.support"))
 }
