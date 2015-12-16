@@ -85,16 +85,14 @@ object Entry extends App {
         .map(arg => new File(arg))
       val analyser = new Analyser(targetClassPath, dependenceJarPath)
       val result = analyser.analysis(fullClassName)
-      result
-        .filterNot(r => notCareClass(r))
-        .foreach(r => println(s"result: $r"))
+      IOUtils.writeToMainDexList(result.filterNot(r => notCareClass(r)))
     }
   }
 
   def handleError(args: Array[String]) = {
     args match {
       case null => showHelpInfo()
-      case _    => println("error in args, please check again,  -help for more info.")
+      case _    => println("error in args, please check again,  --help for more info.")
     }
   }
 
