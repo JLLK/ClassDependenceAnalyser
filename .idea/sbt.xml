@@ -13,6 +13,7 @@
           </set>
         </option>
         <option name="resolveClassifiers" value="true" />
+        <option name="sbtVersion" value="0.13.8" />
         <option name="myModules">
           <set>
             <option value="$PROJECT_DIR$" />

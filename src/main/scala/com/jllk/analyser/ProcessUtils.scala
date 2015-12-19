@@ -46,8 +46,17 @@ object ProcessUtils {
   def exec(cmd: String): String = {
     val child = Runtime.getRuntime.exec(cmd)
     val retCode = child.waitFor()
+
     println(s"[ProcessUtils] exec: $cmd, retCode: $retCode")
     val input = child.getInputStream
+    val err = child.getErrorStream
+
+    inSafe(err) {
+      val bytes = new Array[Byte](err.available())
+      err.read(bytes) // clean cache
+      println(s"[ProcessUtils] err print: ${new String(bytes)}")
+    }
+
     inSafe(input) {
       val bytes = new Array[Byte](input.available())
       input.read(bytes)

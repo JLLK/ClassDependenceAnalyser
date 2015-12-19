@@ -56,9 +56,7 @@ class Analyser(private val path: File, private val dependenceJarPath: List[File]
 
     val dependentClasses = mutable.Set[String]()
     val importDependence = analysisImportDependence(fullClassName)
-    println(s"[analysis] after analysisImportDependence size: ${importDependence.size}")
     importDependence
-      .filterNot(c => notCareClass(c))
       .foreach(c => {
       dependentClasses += c
       dependentClasses ++= analysisInheritDependence(c)
@@ -76,7 +74,7 @@ class Analyser(private val path: File, private val dependenceJarPath: List[File]
     .filter(l => l.contains("= Class") && !l.contains("\"[Ljava/lang/Object;\""))
     .foreach(l => dependentClasses += l.substring(l.indexOf("//") + 2).replaceAll(" ", "").replaceAll("/", "\\.").trim())
     dependentClasses
-      .filterNot(c => notCareClass(c))
+      .filterNot(notCareClass)
       .toList
   }
 
@@ -90,27 +88,34 @@ class Analyser(private val path: File, private val dependenceJarPath: List[File]
   }
 
   private def doClassInheritSearch(fullClassName: String, classLoader: URLClassLoader): List[String] = {
-    println(s"[doClassInheritSearch] className: $fullClassName")
-    val dependentClasses = ListBuffer[String]()
-    dependentClasses += fullClassName
-    val targetClass: Either[Class[_], Exception] =
-      try {
-        Left(classLoader.loadClass(fullClassName))
-      } catch {
-        case e: ClassNotFoundException => Right(e)
-        case e: Exception => Right(e)
-      }
-    targetClass match {
-      case Left(t) =>
-        val superclass = t.getSuperclass
-        if (superclass != null) {
-          dependentClasses ++= doClassInheritSearch(superclass.getName, classLoader)
+    if (notCareClass(fullClassName)) {
+      List.empty[String]
+    } else {
+      val dependentClasses = mutable.Set[String]()
+      dependentClasses += fullClassName
+      dependentClasses ++= analysisImportDependence(fullClassName)
+      dependentClasses.foreach(fullClassName => {
+        println(s"[doClassInheritSearch] className: $fullClassName")
+        val targetClass: Either[Class[_], Exception] =
+          try {
+            Left(classLoader.loadClass(fullClassName))
+          } catch {
+            case e: ClassNotFoundException => Right(e)
+            case e: Exception => Right(e)
+          }
+        targetClass match {
+          case Left(t) =>
+            val superclass = t.getSuperclass
+            if (superclass != null) {
+              dependentClasses ++= doClassInheritSearch(superclass.getName, classLoader)
+            }
+            t.getInterfaces.foreach(i => dependentClasses ++= doClassInheritSearch(i.getName, classLoader))
+          case Right(e) =>
+            println(s"[doClassInheritSearch] exception happened: ${e.getMessage}, please check your dependenceJarPath.")
+            throw e
         }
-        t.getInterfaces.foreach(i => dependentClasses ++= doClassInheritSearch(i.getName, classLoader))
-        dependentClasses.toList
-      case Right(e) =>
-        println(s"[doClassInheritSearch] exception happened: ${e.getMessage}, please check your dependenceJarPath.")
-        throw e
+      })
+      dependentClasses.toList
     }
   }
 }

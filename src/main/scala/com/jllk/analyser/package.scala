@@ -38,7 +38,7 @@
  */
 package com.jllk
 
-import java.io.{IOException, Closeable}
+import java.io.{Closeable, IOException}
 
 /**
   * @author chentaov5@gmail.com
@@ -71,5 +71,6 @@ package object analyser {
 
   def notCareClass(fullClassName: String): Boolean =
     fullClassName.startsWith("java") ||
+    fullClassName.startsWith("\"[Ljava") ||
    (fullClassName.startsWith("android") && !fullClassName.startsWith("android.support"))
 }

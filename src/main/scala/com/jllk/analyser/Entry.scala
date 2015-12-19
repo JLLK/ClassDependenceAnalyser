@@ -85,7 +85,7 @@ object Entry extends App {
         .map(arg => new File(arg))
       val analyser = new Analyser(targetClassPath, dependenceJarPath)
       val result = analyser.analysis(fullClassName)
-      IOUtils.writeToMainDexList(result.filterNot(r => notCareClass(r)))
+      IOUtils.writeToMainDexList(result.filterNot(notCareClass))
     }
   }
 

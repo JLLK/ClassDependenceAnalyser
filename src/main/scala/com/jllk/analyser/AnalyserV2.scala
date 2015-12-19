@@ -38,31 +38,38 @@
  */
 package com.jllk.analyser
 
-import java.io._
-import java.util.Set
+import java.util
+
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.{ClassNode, MethodInsnNode, MethodNode}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 /**
   * @author chentaov5@gmail.com
   *
   */
-object IOUtils {
+object AnalyserV2 {
+  val METHOD_CLINIT = "<clinit>"
 
-  def writeToMainDexList(input: mutable.Set[String]) = {
-    require(input != null)
-    val output = new PrintWriter(new File("maindexlist.txt"))
-    inSafe(output) {
-      input.foreach(l => output.println(l.replaceAll("\\.", "/") + ".class"))
-    }
-  }
-
-  def writeToMainDexList(input: Set[String]) = {
-    require(input != null)
-    val output = new PrintWriter(new File("maindexlist.txt"))
-    inSafe(output) {
-      input.foreach(l => output.println(l + ".class"))
-    }
+  @throws[Exception]
+  def anylsisClinitDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+    println(s"[AnalyserV2] anylsisClinitDependence: $fullClassName")
+    val classReader = new ClassReader(fullClassName)
+    val classNode = new ClassNode()
+    classReader.accept(classNode, 0)
+    classNode.methods.asInstanceOf[util.List[MethodNode]].foreach(m => {
+      if (METHOD_CLINIT.equals(m.name)) {
+        val it = m.instructions.iterator()
+        while (it.hasNext) {
+          it.next() match {
+            case insn: MethodInsnNode =>
+              println(s"[AnalyserV2] anylsisClinitDependence find owner: ${insn.owner}")
+              toKeep.add(insn.owner)
+            case _ =>
+          }
+        }
+      }
+    })
   }
 }
