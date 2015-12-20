@@ -40,6 +40,9 @@ package com.jllk.analyser
 
 import java.io.File
 
+import com.android.multidex.JLLKClassReferenceListBuilder
+
+
 /**
   * @author chentaov5@gmail.com
   *
@@ -54,6 +57,7 @@ object Entry extends App {
       handleError(args)
     } else {
       args(0) match {
+        case "--external" | "-e" => execClassAnalysisV2(args)
         case "--class"    | "-c" => execClassAnalysis(args)
         case "--help"     | "-h" => showHelpInfo()
         case "--version"  | "-v" => showVersionInfo()
@@ -73,6 +77,11 @@ object Entry extends App {
     }
   }
 
+  def execClassAnalysisV2(args: Array[String]): Unit = {
+    val in = remove(args.toList, 0)
+    JLLKClassReferenceListBuilder.main(in.toArray)
+  }
+
   def execClassAnalysis(args: Array[String]) = {
     if (args.length < 2) {
       handleError(args)
@@ -85,7 +94,7 @@ object Entry extends App {
         .map(arg => new File(arg))
       val analyser = new Analyser(targetClassPath, dependenceJarPath)
       val result = analyser.analysis(fullClassName)
-      IOUtils.writeToMainDexList(result.filterNot(notCareClass))
+      IOUtils.writeToMainDexList(result.filterNot(Analyser.notCareClass))
     }
   }
 
@@ -104,6 +113,7 @@ object Entry extends App {
     println("The arguments are:")
     println("")
     println("   -c, --class    analysis class dependence from single class file or from jar path")
+    println("   -e, --external analysis class dependence external from <clinit> and innerClass")
     println("   -h, --help     print jda help info")
     println("   -v, --version  print jda version")
     println("")

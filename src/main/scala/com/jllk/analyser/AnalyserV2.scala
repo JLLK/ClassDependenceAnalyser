@@ -41,7 +41,7 @@ package com.jllk.analyser
 import java.util
 
 import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.{ClassNode, MethodInsnNode, MethodNode}
+import org.objectweb.asm.tree.{InnerClassNode, ClassNode, MethodInsnNode, MethodNode}
 
 import scala.collection.JavaConversions._
 
@@ -54,22 +54,46 @@ object AnalyserV2 {
 
   @throws[Exception]
   def anylsisClinitDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
-    println(s"[AnalyserV2] anylsisClinitDependence: $fullClassName")
-    val classReader = new ClassReader(fullClassName)
-    val classNode = new ClassNode()
-    classReader.accept(classNode, 0)
-    classNode.methods.asInstanceOf[util.List[MethodNode]].foreach(m => {
-      if (METHOD_CLINIT.equals(m.name)) {
-        val it = m.instructions.iterator()
-        while (it.hasNext) {
-          it.next() match {
-            case insn: MethodInsnNode =>
-              println(s"[AnalyserV2] anylsisClinitDependence find owner: ${insn.owner}")
-              toKeep.add(insn.owner)
-            case _ =>
+    if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
+      val classReader = new ClassReader(fullClassName)
+      val classNode = new ClassNode()
+      classReader.accept(classNode, 0)
+      classNode.methods.asInstanceOf[util.List[MethodNode]].foreach(m => {
+        if (METHOD_CLINIT.equals(m.name)) {
+          val it = m.instructions.iterator()
+          while (it.hasNext) {
+            it.next() match {
+              case insn: MethodInsnNode => {
+                println(s"[DO ADD in clint] ${insn.owner}")
+                toKeep.add(insn.owner)
+                anylsisInnerClassDependence(toKeep, insn.owner)
+              }
+              case _ =>
+            }
           }
         }
-      }
-    })
+      })
+    }
+  }
+
+  def anylsisInnerClassDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+    if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
+      val classReader = new ClassReader(fullClassName)
+      val classNode = new ClassNode()
+      classReader.accept(classNode, 0)
+      classNode.innerClasses.asInstanceOf[util.List[InnerClassNode]].foreach(c => {
+        println(s"[DO ADD in innerClass] ${c.name}")
+        toKeep.add(c.name)
+        anylsisClinitDependence(toKeep, c.name)
+      })
+    }
+  }
+
+  @throws[Exception]
+  def anylsisExtDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+    if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
+      anylsisClinitDependence(toKeep, fullClassName)
+      anylsisInnerClassDependence(toKeep, fullClassName)
+    }
   }
 }

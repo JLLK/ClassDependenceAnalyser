@@ -18,11 +18,13 @@ package com.android.multidex;
 
 import com.android.dx.cf.direct.DirectClassFile;
 import com.android.dx.cf.direct.StdAttributeFactory;
+import com.android.dx.cf.iface.ClassFile;
 import com.android.dx.rop.cst.Constant;
 import com.android.dx.rop.cst.ConstantPool;
 import com.android.dx.rop.cst.CstType;
 import com.android.dx.rop.type.Type;
 import com.android.dx.rop.type.TypeList;
+import com.jllk.analyser.Analyser;
 import com.jllk.analyser.AnalyserV2;
 import com.jllk.analyser.IOUtils;
 
@@ -51,7 +53,7 @@ import java.util.zip.ZipFile;
  * their dependencies to other classes. Finally the tools prints on standard output a list of class
  * files names suitable as content of the file argument --main-dex-list of dx.
  */
-public class ClassReferenceListBuilder {
+public class JLLKClassReferenceListBuilder {
 
     private static final String CLASS_EXTENSION = ".class";
 
@@ -74,11 +76,11 @@ public class ClassReferenceListBuilder {
      * @param inputPath list of path to input jars or folders. Path elements must be separated by
      * the system path separator: ':' on Unix, ';' on Windows.
      */
-    public ClassReferenceListBuilder(String inputPath) throws IOException {
+    public JLLKClassReferenceListBuilder(String inputPath) throws IOException {
         this(new Path(inputPath));
     }
 
-    private ClassReferenceListBuilder(Path path) {
+    private JLLKClassReferenceListBuilder(Path path) {
         this.path = path;
     }
 
@@ -103,7 +105,7 @@ public class ClassReferenceListBuilder {
         try {
             path = new Path(args[1]);
 
-            ClassReferenceListBuilder builder = new ClassReferenceListBuilder(path);
+            JLLKClassReferenceListBuilder builder = new JLLKClassReferenceListBuilder(path);
             builder.addRoots(jarOfRoots);
 
             printList(builder.toKeep);
@@ -142,6 +144,7 @@ public class ClassReferenceListBuilder {
             String name = entry.getName();
             if (name.endsWith(CLASS_EXTENSION)) {
                 toKeep.add(name.substring(0, name.length() - CLASS_EXTENSION.length()));
+                System.out.println("[DO ADD] " + name.substring(0, name.length() - CLASS_EXTENSION.length()));
             }
         }
 
@@ -159,6 +162,11 @@ public class ClassReferenceListBuilder {
                             " is missing form original class path " + path, e);
                 }
 
+                try {
+                    AnalyserV2.anylsisExtDependence(toKeep, name.substring(0, name.indexOf(".class")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 addDependencies(classFile.getConstantPool());
             }
         }
@@ -195,6 +203,13 @@ public class ClassReferenceListBuilder {
     }
 
     private static void printList(Set<String> toKeep) {
+        Set<String> notKeep = new HashSet<>();
+        for (String c : toKeep) {
+            if (Analyser.notCareClass(c)) {
+                notKeep.add(c);
+            }
+        }
+        toKeep.removeAll(notKeep);
         IOUtils.writeToMainDexList(toKeep);
     }
 
@@ -218,15 +233,51 @@ public class ClassReferenceListBuilder {
         }
     }
 
+    private void addExtDependencies(ConstantPool pool) {
+        for (Constant constant : pool.getEntries()) {
+            if (constant instanceof CstType) {
+                Type type = ((CstType) constant).getClassType();
+                String descriptor = type.getDescriptor();
+                if (descriptor.endsWith(";")) {
+                    int lastBrace = descriptor.lastIndexOf('[');
+                    if (lastBrace < 0) {
+                        String className = descriptor.substring(1, descriptor.length() - 1);
+                        try {
+                            AnalyserV2.anylsisExtDependence(toKeep, className);
+                        } catch (Exception e) {
+                            System.out.println("[addExtDependencies] exception, class: " + className);
+                            e.printStackTrace();
+                        }
+                    } else {
+                        assert descriptor.length() > lastBrace + 3
+                                && descriptor.charAt(lastBrace + 1) == 'L';
+                        String className = descriptor.substring(lastBrace + 2, descriptor.length() - 1);
+                        try {
+                            AnalyserV2.anylsisExtDependence(toKeep, className);
+                        } catch (Exception e) {
+                            System.out.println("[addExtDependencies] exception, class: " + className);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private void addClassWithHierachy(String classBinaryName) {
-        if (toKeep.contains(classBinaryName)) {
+        System.out.println("[addClassWithHierachy] classBinaryName: " + classBinaryName);
+        if (toKeep.contains(classBinaryName) || Analyser.notCareClass(classBinaryName)) {
             return;
         }
 
+        System.out.println("[addClassWithHierachy] after classBinaryName: " + classBinaryName);
+
         String fileName = classBinaryName + CLASS_EXTENSION;
+
         try {
             DirectClassFile classFile = path.getClass(fileName);
             toKeep.add(classBinaryName);
+            System.out.println("[DO ADD] " + classBinaryName);
             CstType superClass = classFile.getSuperclass();
             if (superClass != null) {
                 addClassWithHierachy(superClass.getClassType().getClassName());
@@ -242,7 +293,8 @@ public class ClassReferenceListBuilder {
         }
 
         try {
-            AnalyserV2.anylsisClinitDependence(toKeep, fileName.substring(0, fileName.indexOf(".class")).replaceAll("/", "\\."));
+            ClassFile classFile = path.getClass(fileName);
+            addExtDependencies(classFile.getConstantPool());
         } catch (Exception e) {
             e.printStackTrace();
         }

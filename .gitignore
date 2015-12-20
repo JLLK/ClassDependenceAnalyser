@@ -22,5 +22,4 @@ project/plugins/project/
 .idea
 *.txt
 input
-lib/classes.jar
 maindexlist.txt

@@ -48,7 +48,14 @@ import scala.collection.mutable.ListBuffer
   * @author chentaov5@gmail.com
   *
   */
+object Analyser {
+  def notCareClass(fullClassName: String): Boolean =
+    fullClassName.startsWith("java") || fullClassName.startsWith("\"[") ||
+      (fullClassName.startsWith("android") && !fullClassName.startsWith("android/support"))
+}
+
 class Analyser(private val path: File, private val dependenceJarPath: List[File]) {
+  import Analyser._
 
   def analysis(fullClassName: String): mutable.Set[String] = {
     println(s"[analysis] className: $fullClassName")
