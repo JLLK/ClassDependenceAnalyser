@@ -17,6 +17,8 @@ project/plugins/project/
 .worksheet
 .DS_Store
 
+# gradle specific
+.gradle
 .idea
 *.txt
 input

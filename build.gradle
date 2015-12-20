@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies{
+    compile fileTree(dir: 'lib', include: '*.jar')
+    compile files('classes.jar')
+    compile files('dx.jar')
+    compile files('asm-all-5.0.4.jar')
+    compile "org.scala-lang:scala-library:2.11.7"
+}
+
+applicationDefaultJvmArgs = ["-verbose:class"]
