@@ -38,29 +38,65 @@
  */
 package com.jllk.analyser
 
+import java.io._
+
 /**
   * @author chentaov5@gmail.com
   *
   */
 object ProcessUtils {
+
   def exec(cmd: String): String = {
-    val child = Runtime.getRuntime.exec(cmd)
-    val retCode = child.waitFor()
-
-    println(s"[ProcessUtils] exec: $cmd, retCode: $retCode")
-    val input = child.getInputStream
-    val err = child.getErrorStream
-
-    inSafe(err) {
-      val bytes = new Array[Byte](err.available())
-      err.read(bytes) // clean cache
-      println(s"[ProcessUtils] err print: ${new String(bytes)}")
+    try {
+      val fos = new ByteArrayOutputStream
+      val rt = Runtime.getRuntime
+      val proc = rt.exec(cmd)
+      val errorGobbler = new StreamGobbler(proc.getErrorStream(), "ERROR")
+      val outputGobbler = new StreamGobbler(proc.getInputStream(), "OUTPUT", fos)
+      errorGobbler.start()
+      outputGobbler.start()
+      val exitVal = proc.waitFor
+      System.out.println(s"ExitValue: $exitVal")
+      fos.flush()
+      fos.close()
+      new String(fos.toByteArray)
     }
+    catch {
+      case t: Throwable => {
+        t.printStackTrace()
+      }
+    }
+    ""
+  }
+}
 
-    inSafe(input) {
-      val bytes = new Array[Byte](input.available())
-      input.read(bytes)
-      new String(bytes)
+class StreamGobbler(private val is: InputStream, private val ty: String, private val os: OutputStream) extends Thread {
+
+  def this(is: InputStream, ty: String)  = this(is, ty, null)
+
+  override def run() {
+    try {
+      var pw: PrintWriter = null
+      if (os != null) {
+        pw = new PrintWriter(os)
+      }
+      val isr = new InputStreamReader(is)
+      val br = new BufferedReader(isr)
+      var line: String = null
+      while ( {
+        line = br.readLine
+        line != null
+      }) {
+        if (pw != null) {
+          pw.println(line)
+        }
+      }
+      if (pw != null) pw.flush()
+    }
+    catch {
+      case ioe: IOException => {
+        ioe.printStackTrace()
+      }
     }
   }
 }

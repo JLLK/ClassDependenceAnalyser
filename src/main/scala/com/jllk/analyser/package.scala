@@ -70,7 +70,6 @@ package object analyser {
   }
 
   def notCareClass(fullClassName: String): Boolean =
-    fullClassName.startsWith("java") ||
-    fullClassName.startsWith("\"[Ljava") ||
+    fullClassName.startsWith("java") || fullClassName.startsWith("\"[") ||
    (fullClassName.startsWith("android") && !fullClassName.startsWith("android.support"))
 }
