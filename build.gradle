@@ -1,9 +1,18 @@
-apply plugin: 'java'
-apply plugin: 'application'
 apply plugin: 'scala'
 
 repositories {
     mavenCentral()
+}
+
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
 }
 
 dependencies{
@@ -13,4 +22,11 @@ dependencies{
     compile "org.scala-lang:scala-library:2.11.7"
 }
 
-applicationDefaultJvmArgs = ["-verbose:class"]
+task run(type: JavaExec, dependsOn: classes) {
+    if(project.hasProperty('appArgs')){
+        args(appArgs.split(','))
+    }
+    main = 'com.jllk.analyser.Entry'
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+}
