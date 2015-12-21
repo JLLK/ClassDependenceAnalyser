@@ -40,6 +40,7 @@ package com.jllk.analyser
 
 import java.util
 
+import com.android.multidex.JLLKClassReferenceListBuilder
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.{InnerClassNode, ClassNode, MethodInsnNode, MethodNode}
 
@@ -65,8 +66,7 @@ object AnalyserV2 {
             it.next() match {
               case insn: MethodInsnNode => {
                 println(s"[DO ADD in clint] ${insn.owner}")
-                toKeep.add(insn.owner)
-                anylsisInnerClassDependence(toKeep, insn.owner)
+                JLLKClassReferenceListBuilder.getDefault.addClassWithHierachy(insn.owner)
               }
               case _ =>
             }
@@ -83,8 +83,7 @@ object AnalyserV2 {
       classReader.accept(classNode, 0)
       classNode.innerClasses.asInstanceOf[util.List[InnerClassNode]].foreach(c => {
         println(s"[DO ADD in innerClass] ${c.name}")
-        toKeep.add(c.name)
-        anylsisClinitDependence(toKeep, c.name)
+        JLLKClassReferenceListBuilder.getDefault.addClassWithHierachy(c.name)
       })
     }
   }

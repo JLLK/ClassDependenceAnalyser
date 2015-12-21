@@ -71,6 +71,11 @@ public class JLLKClassReferenceListBuilder {
     private Path path;
     private Set<String> toKeep = new HashSet<String>();
 
+    private static JLLKClassReferenceListBuilder builder = null;
+
+    public static JLLKClassReferenceListBuilder getDefault() {
+        return builder;
+    }
     /**
      *
      * @param inputPath list of path to input jars or folders. Path elements must be separated by
@@ -105,7 +110,7 @@ public class JLLKClassReferenceListBuilder {
         try {
             path = new Path(args[1]);
 
-            JLLKClassReferenceListBuilder builder = new JLLKClassReferenceListBuilder(path);
+            builder = new JLLKClassReferenceListBuilder(path);
             builder.addRoots(jarOfRoots);
 
             printList(builder.toKeep);
@@ -264,7 +269,7 @@ public class JLLKClassReferenceListBuilder {
         }
     }
 
-    private void addClassWithHierachy(String classBinaryName) {
+    public void addClassWithHierachy(String classBinaryName) {
         System.out.println("[addClassWithHierachy] classBinaryName: " + classBinaryName);
         if (toKeep.contains(classBinaryName) || Analyser.notCareClass(classBinaryName)) {
             return;
