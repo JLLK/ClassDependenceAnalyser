@@ -36,7 +36,7 @@
  *                              HERE BE DRAGONS
  *
  */
-package com.jllk.analyser
+package com.github.jllk.analyser
 
 import java.io._
 

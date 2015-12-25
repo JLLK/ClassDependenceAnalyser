@@ -24,9 +24,9 @@ import com.android.dx.rop.cst.ConstantPool;
 import com.android.dx.rop.cst.CstType;
 import com.android.dx.rop.type.Type;
 import com.android.dx.rop.type.TypeList;
-import com.jllk.analyser.Analyser;
-import com.jllk.analyser.AnalyserV2;
-import com.jllk.analyser.IOUtils;
+import com.github.jllk.analyser.Analyser;
+import com.github.jllk.analyser.AnalyserV2;
+import com.github.jllk.analyser.IOUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

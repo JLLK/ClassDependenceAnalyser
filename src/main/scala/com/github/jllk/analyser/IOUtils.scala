@@ -36,38 +36,33 @@
  *                              HERE BE DRAGONS
  *
  */
-package com.jllk
+package com.github.jllk.analyser
 
-import java.io.{Closeable, IOException}
+import java.io._
+import java.util.Set
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 /**
   * @author chentaov5@gmail.com
   *
   */
-package object analyser {
+object IOUtils {
 
-  def inSafe[A](input: Closeable)(fun: => A): A = {
+  def writeToMainDexList(input: mutable.Set[String]) = {
     require(input != null)
-    try {
-      fun
-    } finally {
-      try {
-        input.close()
-      } catch {
-        case e: IOException => println(s"IOException happened! ${e.getMessage}")
-      }
+    val output = new PrintWriter(new File("maindexlist.txt"))
+    inSafe(output) {
+      input.foreach(l => output.println(l.replaceAll("\\.", "/") + ".class"))
     }
   }
 
-  def isEmpty(str: String): Boolean = str match {
-    case null | "" => true
-    case _ => false
+  def writeToMainDexList(input: Set[String]) = {
+    require(input != null)
+    val output = new PrintWriter(new File("maindexlist.txt"))
+    inSafe(output) {
+      input.foreach(l => output.println(l + ".class"))
+    }
   }
-
-  def remove[A](list: List[A], index: Int) = {
-    val (start, _ :: end) = list.splitAt(index)
-    start ::: end
-  }
-
-
 }
