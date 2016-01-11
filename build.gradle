@@ -17,8 +17,8 @@ sourceSets {
 
 dependencies{
     compile fileTree(dir: 'lib', include: '*.jar')
-    compile files('dx.jar')
-    compile files('asm-all-5.0.4.jar')
+    compile files('lib/dx.jar')
+    compile files('lib/asm-all-5.0.4.jar')
     compile "org.scala-lang:scala-library:2.11.7"
 }
 
@@ -29,4 +29,19 @@ task run(type: JavaExec, dependsOn: classes) {
     main = 'com.github.jllk.analyser.Entry'
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.runtime
+}
+
+def mainClass = 'com.github.jllk.analyser.Entry'
+
+jar {
+    baseName = 'jda'
+
+    manifest {
+        attributes 'Main-Class': mainClass
+        attributes 'Version': project.version
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
