@@ -26,6 +26,9 @@ task run(type: JavaExec, dependsOn: classes) {
     if(project.hasProperty('appArgs')){
         args(appArgs.split(','))
     }
+    if (args[0] == '-e' && args.size() == 3) {
+        classpath args[2]
+    }
     main = 'com.github.jllk.analyser.Entry'
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.runtime
