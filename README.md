@@ -14,16 +14,17 @@ Example:
 
 	gradle run -PappArgs=-e,/your/path1/here/root.jar,/your/path2/here/allclasses.jar
 
-You can get more infos:
+You can get more info:
 
 	gradle run -PappArgs=-h
 
 And you'll find:
 
 ```
-Usage: jda [arguments] targetClassPath [dependenceJarPath]... fullClassName
+Usage: jda [arguments] targetClass [dependenceJarPath]...
 find and print the input class dependence.
-Example: jda -c /workspace/build/android.jar android.app.Application
+Example: jda -c,android.app.Application,/your_path/android.jar
+         jda -e,/your_path/rootclass.jar,/your_path/allclasses.jar
 
 The arguments are:
 
