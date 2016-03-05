@@ -64,9 +64,9 @@ object ProcessUtils {
     catch {
       case t: Throwable => {
         t.printStackTrace()
+        ""
       }
     }
-    ""
   }
 }
 

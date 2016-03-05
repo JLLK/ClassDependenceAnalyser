@@ -250,8 +250,7 @@ public class JLLKClassReferenceListBuilder {
                         try {
                             AnalyserV2.anylsisExtDependence(toKeep, className);
                         } catch (Exception e) {
-                            System.out.println("[addExtDependencies] exception, class: " + className);
-                            e.printStackTrace();
+                            System.out.println("[addExtDependencies] Exception happens " + e.getMessage() + " in class: " + className);
                         }
                     } else {
                         assert descriptor.length() > lastBrace + 3
@@ -260,8 +259,7 @@ public class JLLKClassReferenceListBuilder {
                         try {
                             AnalyserV2.anylsisExtDependence(toKeep, className);
                         } catch (Exception e) {
-                            System.out.println("[addExtDependencies] exception, class: " + className);
-                            e.printStackTrace();
+                            System.out.println("[addExtDependencies] Exception happens " + e.getMessage() + " in class: " + className);
                         }
                     }
                 }
@@ -270,12 +268,9 @@ public class JLLKClassReferenceListBuilder {
     }
 
     public void addClassWithHierachy(String classBinaryName) {
-        System.out.println("[addClassWithHierachy] classBinaryName: " + classBinaryName);
         if (toKeep.contains(classBinaryName) || Analyser.notCareClass(classBinaryName)) {
             return;
         }
-
-        System.out.println("[addClassWithHierachy] after classBinaryName: " + classBinaryName);
 
         String fileName = classBinaryName + CLASS_EXTENSION;
 
@@ -293,15 +288,9 @@ public class JLLKClassReferenceListBuilder {
             for (int i = 0; i < interfaceNumber; i++) {
                 addClassWithHierachy(interfaceList.getType(i).getClassName());
             }
+            addExtDependencies(classFile.getConstantPool());
         } catch (FileNotFoundException e) {
             // Ignore: The referenced type is not in the path it must be part of the libraries.
-        }
-
-        try {
-            ClassFile classFile = path.getClass(fileName);
-            addExtDependencies(classFile.getConstantPool());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

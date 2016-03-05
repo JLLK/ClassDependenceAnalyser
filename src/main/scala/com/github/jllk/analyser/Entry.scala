@@ -49,7 +49,6 @@ import com.android.multidex.JLLKClassReferenceListBuilder
   */
 object Entry extends App {
 
-  printArgs(args)
   handleArgs(args)
 
   def handleArgs(args: Array[String]) = {
@@ -88,11 +87,11 @@ object Entry extends App {
     } else {
       val argsList = args.toList
       val argsLen = args.length
-      val fullClassName = argsList(argsLen - 1)
+      val fullClassName = argsList(1)
       val targetClassPath = new File(argsList(1))
-      val dependenceJarPath = remove(remove(remove(argsList, argsLen -1), 0), 0)
-        .map(arg => new File(arg))
-      val analyser = new Analyser(targetClassPath, dependenceJarPath)
+      val dependenceJarPath = remove(remove(argsList, 0), 0).map(arg => new File(arg))
+      println(s"tom targetClassPath: $targetClassPath, dependenceJarPath: $dependenceJarPath")
+      val analyser = new Analyser(dependenceJarPath)
       val result = analyser.analysis(fullClassName)
       IOUtils.writeToMainDexList(result.filterNot(Analyser.notCareClass))
     }
@@ -106,9 +105,10 @@ object Entry extends App {
   }
 
   def showHelpInfo() = {
-    println("Usage: jda [arguments] targetClassPath [dependenceJarPath]... fullClassName")
+    println("Usage: jda [arguments] targetClass [dependenceJarPath]...")
     println("find and print the input class dependence.")
-    println("Example: jda -c /workspace/build/android.jar android.app.Application")
+    println("Example: jda -c,android.app.Application,/your_path/android.jar")
+    println("         jda -e,/your_path/rootclass.jar,/your_path/allclasses.jar")
     println("")
     println("The arguments are:")
     println("")
@@ -121,7 +121,7 @@ object Entry extends App {
 
   def showVersionInfo() = {
     println("===========================================================")
-    println("  ClassDependenceAnalyser 0.5beta <chentaov5@gmail.com>")
+    println("  ClassDependenceAnalyser 1.0.0-beta <chentaov5@gmail.com>")
     println("===========================================================")
   }
 }
