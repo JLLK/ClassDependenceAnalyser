@@ -1,0 +1,93 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'jllk-cda'
+
+    publishedGroupId = 'com.github.jllk'
+    artifact = 'jllk-cda'
+
+    siteUrl = 'https://github.com/JLLK/ClassDependenceAnalyser'
+    gitUrl = 'https://github.com/JLLK/ClassDependenceAnalyser.git'
+
+    libraryName = project.libraryName
+    libraryVersion = project.libVersion
+    libraryDescription = project.libraryDescription
+
+    developerId = 'jllk'
+    developerName = 'Chen Tao'
+    developerEmail = 'chentaov5@gmail.com'
+
+    licenseName = 'GPL, Version 2.0'
+    licenseUrl = 'http://www.gnu.org/licenses/old-licenses/gpl-2.0.html'
+    allLicenses = ["GPL-2.0"]
+}
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'jar'
+                groupId publishedGroupId
+                artifactId artifact
+
+                // Add your description here
+                name libraryName
+                description libraryDescription
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name licenseName
+                        url licenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id developerId
+                        name developerName
+                        email developerEmail
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+
+                }
+            }
+        }
+    }
+}
+
+version = libraryVersion
+
+// Bintray
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = bintrayRepo
+        name = bintrayName
+        desc = libraryDescription
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = allLicenses
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            desc = libraryDescription
+            gpg {
+                sign = true
+                passphrase = properties.getProperty("bintray.gpg.password")
+            }
+        }
+    }
+}

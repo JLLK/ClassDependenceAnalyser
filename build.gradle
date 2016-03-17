@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+    }
+}
+
 apply plugin: 'scala'
 
 repositories {
@@ -37,14 +46,16 @@ task run(type: JavaExec, dependsOn: classes) {
 def mainClass = 'com.github.jllk.analyser.Entry'
 
 jar {
-    baseName = 'jda'
+    baseName = 'jllk-cda'
 
     manifest {
         attributes 'Main-Class': mainClass
-        attributes 'Version': project.version
+        attributes 'Version': project.libVersion
     }
 
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+apply from: 'publish.gradle'
