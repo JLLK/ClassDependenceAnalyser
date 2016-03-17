@@ -42,7 +42,7 @@ import java.util
 
 import com.android.multidex.JLLKClassReferenceListBuilder
 import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.{InnerClassNode, ClassNode, MethodInsnNode, MethodNode}
+import org.objectweb.asm.tree.{ClassNode, InnerClassNode, MethodInsnNode, MethodNode}
 
 import scala.collection.JavaConversions._
 
@@ -54,7 +54,7 @@ object AnalyserV2 {
   val METHOD_CLINIT = "<clinit>"
 
   @throws[Exception]
-  def anylsisClinitDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+  def anylsisClinitDependence(toKeep: util.Set[String], fullClassName: String) {
     if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
       val classReader = new ClassReader(fullClassName)
       val classNode = new ClassNode()
@@ -64,10 +64,9 @@ object AnalyserV2 {
           val it = m.instructions.iterator()
           while (it.hasNext) {
             it.next() match {
-              case insn: MethodInsnNode => {
+              case insn: MethodInsnNode =>
                 println(s"[DO ADD in clint] ${insn.owner}")
                 JLLKClassReferenceListBuilder.getDefault.addClassWithHierachy(insn.owner)
-              }
               case _ =>
             }
           }
@@ -76,7 +75,8 @@ object AnalyserV2 {
     }
   }
 
-  def anylsisInnerClassDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+  @throws[Exception]
+  def anylsisInnerClassDependence(toKeep: util.Set[String], fullClassName: String) {
     if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
       val classReader = new ClassReader(fullClassName)
       val classNode = new ClassNode()
@@ -89,7 +89,7 @@ object AnalyserV2 {
   }
 
   @throws[Exception]
-  def anylsisExtDependence(toKeep: util.Set[String], fullClassName: String): Unit = {
+  def anylsisExtDependence(toKeep: util.Set[String], fullClassName: String) {
     if (!toKeep.contains(fullClassName) && !Analyser.notCareClass(fullClassName)) {
       anylsisClinitDependence(toKeep, fullClassName)
       anylsisInnerClassDependence(toKeep, fullClassName)

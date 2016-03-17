@@ -50,8 +50,10 @@ import scala.collection.mutable.ListBuffer
   */
 object Analyser {
   def notCareClass(fullClassName: String): Boolean =
-    fullClassName.startsWith("java") || fullClassName.startsWith("\"[") ||
-      (fullClassName.startsWith("android") && !fullClassName.startsWith("android/support"))
+    fullClassName.startsWith("java") ||
+    fullClassName.startsWith("scala") ||
+    fullClassName.startsWith("\"[") ||
+    (fullClassName.startsWith("android") && !fullClassName.startsWith("android/support"))
 }
 
 class Analyser(private val dependenceJarPath: List[File]) {
@@ -93,27 +95,30 @@ class Analyser(private val dependenceJarPath: List[File]) {
     if (notCareClass(fullClassName)) {
       List.empty[String]
     } else {
+
       val dependentClasses = mutable.Set[String]()
       dependentClasses += fullClassName
       dependentClasses ++= analysisImportDependence(fullClassName)
       dependentClasses.foreach(fullClassName => {
         val targetClass: Either[Class[_], Exception] =
-          try {
+          try
             Left(classLoader.loadClass(fullClassName))
-          } catch {
+          catch {
             case e: ClassNotFoundException => Right(e)
             case e: Exception => Right(e)
           }
+
         targetClass match {
-          case Left(t) =>
-            val superclass = t.getSuperclass
+          case Left(c) =>
+            val superclass = c.getSuperclass
             if (superclass != null) {
               dependentClasses ++= doClassInheritSearch(superclass.getName, classLoader)
             }
-            t.getInterfaces.foreach(i => dependentClasses ++= doClassInheritSearch(i.getName, classLoader))
+            c.getInterfaces.foreach(i => dependentClasses ++= doClassInheritSearch(i.getName, classLoader))
           case Right(e) =>
             println(s"[doClassInheritSearch] exception happened: ${e.getMessage}, please check your dependenceJarPath.")
         }
+
       })
       dependentClasses.toList
     }

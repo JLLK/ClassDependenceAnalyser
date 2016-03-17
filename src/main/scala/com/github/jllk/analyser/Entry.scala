@@ -105,23 +105,23 @@ object Entry extends App {
   }
 
   def showHelpInfo() = {
-    println("Usage: jda [arguments] targetClass [dependenceJarPath]...")
+    println("Usage: jllk-cda [arguments] targetClass [dependenceJarPath]...")
     println("find and print the input class dependence.")
-    println("Example: jda -c,android.app.Application,/your_path/android.jar")
-    println("         jda -e,/your_path/rootclass.jar,/your_path/allclasses.jar")
+    println("Example: jllk-cda -c,yourFQCN,/your_path/android.jar")
+    println("         jllk-cda -e,/your_path/rootclass.jar,/your_path/allclasses.jar")
     println("")
     println("The arguments are:")
     println("")
     println("   -c, --class    analysis class dependence from single class file or from jar path")
     println("   -e, --external analysis class dependence external from <clinit> and innerClass")
-    println("   -h, --help     print jda help info")
-    println("   -v, --version  print jda version")
+    println("   -h, --help     print jllk-cda help info")
+    println("   -v, --version  print jllk-cda version")
     println("")
   }
 
   def showVersionInfo() = {
     println("===========================================================")
-    println("  ClassDependenceAnalyser 1.0.0-beta <chentaov5@gmail.com>")
+    println("  ClassDependenceAnalyser 1.0.0 <chentaov5@gmail.com>")
     println("===========================================================")
   }
 }
