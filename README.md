@@ -8,9 +8,9 @@ A tool for java classes dependence analysis
 This is the way to sovle the [main dex capacity exceeded](http://ct2wj.com/2015/12/22/the-way-to-solve-main-dex-capacity-exceeded-in-Android-gradle-build/) problem in google's multidex library. We can use it to generate a better maindexlist file in order to keep the size of main dex minimum.
 
 
-# How to use
+# Usage
 
-Example:
+For example:
 
 	gradle run -PappArgs=-e,/your/path1/here/root.jar,/your/path2/here/allclasses.jar
 
@@ -36,4 +36,4 @@ The arguments are:
 	
 # License
 
-This library is licensed under GPL license. See LICENSE for details.
+This tool is licensed under GPL license. See LICENSE for details.
